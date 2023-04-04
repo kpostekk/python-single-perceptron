@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def load_dataframes():
@@ -62,10 +63,11 @@ def main():
         learning_rate=0.1
     )
 
-    gen_iterations = 0
     accuracy = 0
+    learn_tracker = pd.DataFrame(
+        {'accuracy': [0], 'weights+': [np.append(perceptron.weights, perceptron.threshold)]})
 
-    while accuracy < 1.0 and gen_iterations < 1000:
+    while accuracy < 1.0 and len(learn_tracker) < 1000:
         test_result = pd.DataFrame(columns=['expected', 'predicted'])
 
         for index, row in test.iterrows():
@@ -76,14 +78,27 @@ def main():
             ])
 
         accuracy = len(test_result[test_result['expected'] == test_result['predicted']]) / len(test_result)
-        print(f'{accuracy=} {gen_iterations=}')
 
         # Learn from the training data
         for index, row in train.iterrows():
             perceptron.train(row['vector'], row['classname'])
             # print(perceptron)
 
-        gen_iterations += 1
+        learn_tracker = pd.concat([
+            learn_tracker,
+            pd.DataFrame({'accuracy': [accuracy], 'weights+': [np.append(perceptron.weights, perceptron.threshold)]})
+        ])
+        learn_tracker.reset_index(drop=True, inplace=True)
+
+    learn_tracker.plot(
+        y='accuracy',
+        kind='line',
+        use_index=True,
+        title='Accuracy over generations',
+        ylabel='Accuracy',
+        xlabel='Generation'
+    )
+    plt.show()
 
 
 if __name__ == '__main__':

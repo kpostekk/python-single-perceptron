@@ -7,7 +7,7 @@ from _perceptron import load_dataframes, Perceptron
 
 
 def create_perceptron(lr=0.05):
-    test, train, vl = load_dataframes()
+    test_data, train_data, vl = load_dataframes()
 
     # Initialize the perceptron
     perceptron = Perceptron(
@@ -23,7 +23,7 @@ def create_perceptron(lr=0.05):
     while accuracy < 0.95 and len(learn_tracker) < 200:
         test_result = pd.DataFrame(columns=['expected', 'predicted'])
 
-        for index, row in test.iterrows():
+        for index, row in test_data.iterrows():
             predicted = perceptron.predict(row['vector'])
             test_result = pd.concat([
                 test_result,
@@ -33,7 +33,7 @@ def create_perceptron(lr=0.05):
         accuracy = len(test_result[test_result['expected'] == test_result['predicted']]) / len(test_result)
 
         # Learn from the training data
-        for index, row in train.sample(frac=1).iterrows():
+        for index, row in train_data.sample(frac=1).iterrows():
             perceptron.train(row['vector'], row['classname'])
             # print(perceptron)
 

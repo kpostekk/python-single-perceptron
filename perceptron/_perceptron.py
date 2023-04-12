@@ -1,6 +1,22 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+
+class_codes = {
+    'Iris-versicolor': 0,
+    'Iris-virginica': 1
+}
+
+
+def convert_result(result: int | str):
+    if type(result) == str:
+        return class_codes[result]
+
+    if type(result) == int:
+        for key, value in class_codes.items():
+            if value == result:
+                return key
+
+    raise ValueError(f'Invalid result type: {type(result)}')
 
 
 def load_dataframes():
@@ -31,7 +47,7 @@ class Perceptron:
         prediction_sum = sum(
             [self.weights[i] * vector[i] for i in range(len(self.weights))]
         )
-        return 'Iris-versicolor' if prediction_sum >= self.threshold else 'Iris-virginica'
+        return convert_result(int(prediction_sum >= self.threshold))
 
     def train(self, vector, expected):
         prediction = self.predict(vector)
@@ -41,8 +57,8 @@ class Perceptron:
 
         w = np.append(self.weights, self.threshold)
         x = np.append(vector, -1)
-        d = 1 if expected == 'Iris-versicolor' else 0
-        y = 1 if prediction == 'Iris-versicolor' else 0
+        d = convert_result(expected)
+        y = convert_result(prediction)
         w_prime = w + self.learning_rate * (d - y) * x
         self.weights = w_prime[:-1]
         self.threshold = w_prime[-1]

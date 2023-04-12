@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from _perceptron import load_dataframes, Perceptron
+from _utils import detect_degradation
 
 
 def create_perceptron(lr=0.05):
@@ -18,9 +19,9 @@ def create_perceptron(lr=0.05):
 
     accuracy = 0
     learn_tracker = pd.DataFrame(
-        {'accuracy': [0], 'weights+': [np.append(perceptron.weights, perceptron.threshold)]})
+        {'accuracy': [0], 'weights': [perceptron.weights], 'threshold': [perceptron.threshold]})
 
-    while accuracy < 0.95 and len(learn_tracker) < 200:
+    while not detect_degradation(learn_tracker['accuracy'].values):
         test_result = pd.DataFrame(columns=['expected', 'predicted'])
 
         for index, row in test_data.iterrows():
@@ -39,11 +40,22 @@ def create_perceptron(lr=0.05):
 
         learn_tracker = pd.concat([
             learn_tracker,
-            pd.DataFrame({'accuracy': [accuracy], 'weights+': [np.append(perceptron.weights, perceptron.threshold)]})
+            pd.DataFrame({'accuracy': [accuracy], 'weights': [perceptron.weights], 'threshold': [perceptron.threshold]})
         ])
         learn_tracker.reset_index(drop=True, inplace=True)
 
-    return perceptron, learn_tracker
+    # get the best weights
+    best_row = learn_tracker.iloc[learn_tracker['accuracy'].idxmax()]
+    best_perceptron = Perceptron(
+        weights=best_row['weights'],
+        threshold=best_row['threshold'],
+        learning_rate=lr
+    )
+    print(f'Best accuracy: {best_row["accuracy"]:.2f}')
+    print(f'Best weights: {best_row["weights"]}')
+    print(f'Best threshold: {best_row["threshold"]}')
+
+    return best_perceptron, learn_tracker
 
 
 @click.group()
@@ -52,7 +64,7 @@ def group():
 
 
 @group.command(help='Run the perceptron with the default datasets and prints plot.')
-@click.option('--lr', '-l', type=float, help='Learning rate.')
+@click.option('--lr', '-l', type=float, help='Learning rate.', required=True)
 def stats(lr):
     perceptron, learn_tracker = create_perceptron(lr)
     print(perceptron)

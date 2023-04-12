@@ -64,4 +64,4 @@ class Perceptron:
         self.threshold = w_prime[-1]
 
     def __str__(self):
-        return f'Perceptron({self.weights=} {self.threshold=} {self.learning_rate=})'
+        return f'Perceptron(\n\t{self.weights=} \n\t{self.threshold=} \n\t{self.learning_rate=}\n)'
